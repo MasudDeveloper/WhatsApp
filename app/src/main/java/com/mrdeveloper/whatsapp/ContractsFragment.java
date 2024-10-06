@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -34,7 +36,7 @@ public class ContractsFragment extends Fragment {
 
     DatabaseReference contactsRef, userRef;
     FirebaseAuth firebaseAuth;
-    String currentUserId;
+    String currentUserId, clickUserID;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -47,7 +49,7 @@ public class ContractsFragment extends Fragment {
 
         firebaseAuth = FirebaseAuth.getInstance();
         currentUserId = firebaseAuth.getCurrentUser().getUid();
-        contactsRef = FirebaseDatabase.getInstance().getReference().child("Contacts").child(currentUserId);
+        contactsRef = FirebaseDatabase.getInstance().getReference().child("Contacts");
         userRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -64,19 +66,21 @@ public class ContractsFragment extends Fragment {
         super.onStart();
 
         FirebaseRecyclerOptions<Contacts> options = new FirebaseRecyclerOptions.Builder<Contacts>()
-                .setQuery(contactsRef,Contacts.class)
+                .setQuery(contactsRef.child(currentUserId),Contacts.class)
                 .build();
 
         FirebaseRecyclerAdapter<Contacts,ContactsViewHolder> adapter = new FirebaseRecyclerAdapter<Contacts, ContactsViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull ContactsViewHolder holder, int position, @NonNull Contacts model) {
 
-                String userIDS = getRef(position).getKey();
+                clickUserID = getRef(position).getKey();
 
-                userRef.child(userIDS).addValueEventListener(new ValueEventListener() {
+                userRef.child(clickUserID).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+
                         if (snapshot.exists() && snapshot.hasChild("image")) {
+
                             holder.tvName.setText(snapshot.child("name").getValue().toString());
                             holder.tvBio.setText(snapshot.child("bio").getValue().toString());
 
@@ -93,6 +97,7 @@ public class ContractsFragment extends Fragment {
                                     startActivity(intent);
                                 }
                             });
+
                         } else {
 
                             holder.tvName.setText(snapshot.child("name").getValue().toString());
@@ -109,6 +114,9 @@ public class ContractsFragment extends Fragment {
                             });
 
                         }
+
+
+
                     }
 
                     @Override

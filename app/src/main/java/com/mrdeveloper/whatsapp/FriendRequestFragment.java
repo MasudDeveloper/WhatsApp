@@ -37,9 +37,9 @@ public class FriendRequestFragment extends Fragment {
     RecyclerView recyclerView;
 
     FirebaseAuth firebaseAuth;
-    DatabaseReference friendRequestRef,userRef;
+    DatabaseReference friendRequestRef,userRef, contactsRef,messageRequestRef;
 
-    private String currentUserID;
+    private String currentUserID, clickUserID;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,6 +52,8 @@ public class FriendRequestFragment extends Fragment {
         currentUserID = firebaseAuth.getCurrentUser().getUid();
         friendRequestRef = FirebaseDatabase.getInstance().getReference().child("Message Request").child(currentUserID);
         userRef = FirebaseDatabase.getInstance().getReference().child("Users");
+        contactsRef = FirebaseDatabase.getInstance().getReference().child("Contacts");
+        messageRequestRef = FirebaseDatabase.getInstance().getReference().child("Message Request");
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -73,7 +75,7 @@ public class FriendRequestFragment extends Fragment {
                 holder.acceptButton.setVisibility(View.VISIBLE);
                 holder.rejectButton.setVisibility(View.VISIBLE);
 
-                String userIDS = getRef(position).getKey();
+                clickUserID = getRef(position).getKey();
 
                 DatabaseReference getKeyRef = getRef(position).child("request_type").getRef();
 
@@ -86,47 +88,37 @@ public class FriendRequestFragment extends Fragment {
                             String type = snapshot.getValue().toString();
 
                             if (type.equals("receive")) {
-                                userRef.child(userIDS).addValueEventListener(new ValueEventListener() {
+                                userRef.child(clickUserID).addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                                         if (snapshot.exists() && snapshot.hasChild("image") ) {
-                                            holder.tvName.setText(snapshot.child("name").getValue().toString());
-                                            holder.tvBio.setText(snapshot.child("bio").getValue().toString());
 
                                             String getImage = snapshot.child("image").getValue().toString();
 
                                             Picasso.get().load(getImage).placeholder(R.drawable.profile).into(holder.profileImage);
 
-                                            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View v) {
-                                                    String clickUserID = getRef(position).getKey();
-                                                    Intent intent = new Intent(getContext(), UserProfileActivity.class);
-                                                    intent.putExtra("clickUserID",clickUserID);
-                                                    startActivity(intent);
-                                                }
-                                            });
-
-
-
-                                        } else {
-                                            holder.tvName.setText(snapshot.child("name").getValue().toString());
-                                            holder.tvBio.setText(snapshot.child("bio").getValue().toString());
-
-
-                                            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View v) {
-                                                    String clickUserID = getRef(position).getKey();
-                                                    Intent intent = new Intent(getContext(), UserProfileActivity.class);
-                                                    intent.putExtra("clickUserID",clickUserID);
-                                                    startActivity(intent);
-                                                }
-                                            });
 
 
                                         }
+
+                                        holder.tvName.setText(snapshot.child("name").getValue().toString());
+                                        holder.tvBio.setText(snapshot.child("bio").getValue().toString());
+
+                                        holder.acceptButton.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                acceptMessageRequest();
+                                            }
+                                        });
+
+                                        holder.rejectButton.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                removeMessageRequest();
+                                            }
+                                        });
+
 
                                     }
 
@@ -185,6 +177,77 @@ public class FriendRequestFragment extends Fragment {
             rejectButton = itemView.findViewById(R.id.rejectButton);
 
         }
+    } //====================================================
+
+    public void acceptMessageRequest() {
+
+        contactsRef.child(currentUserID).child(clickUserID)
+                .child("Contacts").setValue("Saved").addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+                            contactsRef.child(clickUserID).child(currentUserID)
+                                    .child("Contacts").setValue("Saved").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+
+                                                messageRequestRef.child(currentUserID).child(clickUserID)
+                                                        .removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                                if (task.isSuccessful()) {
+
+                                                                    messageRequestRef.child(clickUserID).child(currentUserID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                        @Override
+                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                            Toast.makeText(getContext(), "Contacts Added", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    });
+
+
+                                                                }
+
+                                                            }
+                                                        });
+
+                                            }
+
+                                        }
+                                    });
+
+
+                        }
+
+                    }
+                });
+
+    } // ======================================= end =====================
+
+    private void removeMessageRequest() {
+
+        contactsRef.child(currentUserID).child(clickUserID)
+                .removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            contactsRef.child(clickUserID).child(currentUserID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Toast.makeText(getContext(), "Request Cancel", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+
+                        }
+
+                    }
+                });
+
     }
 
 
