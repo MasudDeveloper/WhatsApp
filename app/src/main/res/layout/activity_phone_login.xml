@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="16dp"
+    tools:context=".PhoneLoginActivity">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/numberInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Mobile Number"
+        app:prefixTextColor="@android:color/holo_blue_light"
+        app:counterEnabled="true"
+        app:counterMaxLength="14"
+        app:startIconDrawable="@drawable/call"
+        app:endIconMode="clear_text"
+        android:layout_margin="16dp"
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="14" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/codeInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Verification Code"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        >
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edVerificationCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/sendCodeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Send Verification Code"
+        android:textSize="20sp"
+        android:padding="10dp"
+        />
+
+
+    <Button
+        android:id="@+id/verificationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Code Verify"
+        android:textSize="20sp"
+        android:visibility="gone"
+        />
+
+</LinearLayout>
